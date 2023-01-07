@@ -44,10 +44,11 @@ class CreateMessages
      */
     protected function handleAllSubscribers(Campaign $campaign)
     {
+        $offset = 0;
         Subscriber::where('workspace_id', $campaign->workspace_id)
             ->whereNull('unsubscribed_at')
-            ->chunkById(1000, function ($subscribers) use ($campaign) {
-                $this->dispatchToSubscriber($campaign, $subscribers);
+            ->chunkById(1000, function ($subscribers) use ($campaign, &$offset) {
+                $offset = $this->dispatchToSubscriber($campaign, $subscribers, $offset);
             }, 'id');
     }
 
@@ -75,8 +76,9 @@ class CreateMessages
     {
         \Log::info('- Handling Campaign Tag id='.$tag->id);
 
-        $tag->subscribers()->whereNull('unsubscribed_at')->chunkById(1000, function ($subscribers) use ($campaign) {
-            $this->dispatchToSubscriber($campaign, $subscribers);
+        $offset = 0;
+        $tag->subscribers()->whereNull('unsubscribed_at')->chunkById(1000, function ($subscribers) use ($campaign, &$offset) {
+            $offset = $this->dispatchToSubscriber($campaign, $subscribers, $offset);
         }, 'sendportal_subscribers.id');
     }
 
@@ -86,7 +88,7 @@ class CreateMessages
      * @param Campaign $campaign
      * @param $subscribers
      */
-    protected function dispatchToSubscriber(Campaign $campaign, $subscribers)
+    protected function dispatchToSubscriber(Campaign $campaign, $subscribers, $offset)
     {
         \Log::info('- Number of subscribers in this chunk: ' . count($subscribers));
 
@@ -95,8 +97,11 @@ class CreateMessages
                 continue;
             }
 
-            $this->dispatch($campaign, $subscriber);
+            $this->dispatch($campaign, $subscriber, $offset);
+            $offset++;
         }
+
+        return $offset;
     }
 
     /**
@@ -140,12 +145,12 @@ class CreateMessages
      * @param Campaign $campaign
      * @param Subscriber $subscriber
      */
-    protected function dispatch(Campaign $campaign, Subscriber $subscriber): void
+    protected function dispatch(Campaign $campaign, Subscriber $subscriber, $offset): void
     {
         if ($campaign->save_as_draft) {
             $this->saveAsDraft($campaign, $subscriber);
         } else {
-            $this->dispatchNow($campaign, $subscriber);
+            $this->dispatchNow($campaign, $subscriber, $offset);
         }
     }
 
@@ -156,7 +161,7 @@ class CreateMessages
      * @param Subscriber $subscriber
      * @return Message
      */
-    protected function dispatchNow(Campaign $campaign, Subscriber $subscriber): Message
+    protected function dispatchNow(Campaign $campaign, Subscriber $subscriber, $offset): Message
     {
         // If a message already exists, then we're going to assume that
         // it has already been dispatched. This makes the dispatch fault-tolerant
@@ -181,12 +186,13 @@ class CreateMessages
             'from_email' => $campaign->from_email,
             'queued_at' => null,
             'sent_at' => null,
+            'delayed_send_at' => now()->addSeconds(30 * $offset)
         ];
 
         $message = new Message($attributes);
         $message->save();
 
-        event(new MessageDispatchEvent($message));
+        SendMessage::dispatch($message)->delay($message->delayed_send_at);
 
         return $message;
     }

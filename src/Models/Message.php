@@ -40,6 +40,7 @@ use Sendportal\Pro\Models\AutomationSchedule;
  * @property Carbon|null $clicked_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property Carbon|null $delayed_send_at
  *
  * @property EloquentCollection $failures
  * @property Subscriber $subscriber
@@ -77,6 +78,7 @@ class Message extends BaseModel
         'clicked_at',
         'created_at',
         'updated_at',
+        'delayed_send_at',
     ];
 
     // We can't use boolean fields on this model because we have multiple points to update from the controller.

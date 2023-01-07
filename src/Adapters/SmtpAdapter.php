@@ -28,7 +28,7 @@ class SmtpAdapter extends BaseMailAdapter
         return $this->resolveMessageId($result);
     }
 
-    protected function resolveClient(): Mailer
+    protected function resolveClient(): mixed
     {
         if (isset($this->client)) {
             return $this->client;
@@ -38,7 +38,7 @@ class SmtpAdapter extends BaseMailAdapter
         return $this->client;
     }
 
-    protected function resolveTransport(): Transport
+    protected function resolveTransport(): mixed
     {
         if (isset($this->transport)) {
             return $this->transport;
@@ -56,7 +56,7 @@ class SmtpAdapter extends BaseMailAdapter
         return $this->transport;
     }
 
-    protected function resolveMessage(string $subject, string $content, string $fromEmail, string $fromName, string $toEmail): Email
+    protected function resolveMessage(string $subject, string $content, string $fromEmail, string $fromName, string $toEmail): mixed
     {
         return (new Email())
             ->from(new Address($fromEmail, $fromName))

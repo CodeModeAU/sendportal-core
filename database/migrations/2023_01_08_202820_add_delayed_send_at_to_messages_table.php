@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 use Sendportal\Base\UpgradeMigration;
 
-return new class extends UpgradeMigration
+class AddDelayedSendAtToMessagesTable extends UpgradeMigration
 {
     /**
      * Run the migrations.

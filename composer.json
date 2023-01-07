@@ -12,13 +12,15 @@
         "doctrine/dbal": "^3.0",
         "illuminate/support": "^9.0",
         "kriswallsmith/buzz": "^1.2",
+        "maatwebsite/excel": "^3.1",
         "mailgun/mailgun-php": "^3.2",
         "mailjet/mailjet-apiv3-php": "^1.5",
         "nyholm/psr7": "^1.3",
-        "maatwebsite/excel": "^3.1",
+        "postal/postal": "^1.0",
         "sendgrid/sendgrid": "^7.9",
-        "wildbit/postmark-php": "^4.0",
-        "postal/postal": "^1.0"
+        "symfony/google-mailer": "^6.2",
+        "symfony/mailer": "^6.2",
+        "wildbit/postmark-php": "^4.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.0"

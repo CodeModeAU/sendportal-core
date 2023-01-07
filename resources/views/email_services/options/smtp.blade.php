@@ -3,3 +3,4 @@
 <x-sendportal.text-field name="settings[encryption]" :label="__('Encryption')" :value="Arr::get($settings ?? [], 'encryption')" />
 <x-sendportal.text-field name="settings[username]" :label="__('Username')" :value="Arr::get($settings ?? [], 'username')" />
 <x-sendportal.text-field type="password" name="settings[password]" :label="__('Password')" :value="Arr::get($settings ?? [], 'password')" />
+<x-sendportal.checkbox-field name="settings[is_gmail]" :label="__('Is Gmail?')" value="1" :checked="Arr::get($settings ?? [], 'is_gmail') ?? false" />

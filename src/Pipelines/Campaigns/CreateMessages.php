@@ -2,6 +2,7 @@
 
 namespace Sendportal\Base\Pipelines\Campaigns;
 
+use Carbon\Carbon;
 use Sendportal\Base\Events\MessageDispatchEvent;
 use Sendportal\Base\Models\Campaign;
 use Sendportal\Base\Models\Message;
@@ -11,6 +12,9 @@ use Sendportal\Base\Jobs\SendMessage;
 
 class CreateMessages
 {
+    private const DELAY_MIN_SECONDS = 180; // 3mins
+    private const DELAY_MAX_SECONDS = 300; // 5mins
+
     /**
      * Stores unique subscribers for this campaign
      *
@@ -46,10 +50,13 @@ class CreateMessages
     protected function handleAllSubscribers(Campaign $campaign)
     {
         $offset = 0;
+        $delay_offset = 0;
         Subscriber::where('workspace_id', $campaign->workspace_id)
             ->whereNull('unsubscribed_at')
-            ->chunkById(1000, function ($subscribers) use ($campaign, &$offset) {
-                $offset = $this->dispatchToSubscriber($campaign, $subscribers, $offset);
+            ->chunkById(1000, function ($subscribers) use ($campaign, &$offset, &$delay_offset) {
+                $offsets = $this->dispatchToSubscriber($campaign, $subscribers, $offset, $delay_offset);
+                $offset = $offsets[0] ?? $offset;
+                $delay_offset = $offsets[1] ?? $delay_offset;
             }, 'id');
     }
 
@@ -78,8 +85,11 @@ class CreateMessages
         \Log::info('- Handling Campaign Tag id='.$tag->id);
 
         $offset = 0;
-        $tag->subscribers()->whereNull('unsubscribed_at')->chunkById(1000, function ($subscribers) use ($campaign, &$offset) {
-            $offset = $this->dispatchToSubscriber($campaign, $subscribers, $offset);
+        $delay_offset = 0;
+        $tag->subscribers()->whereNull('unsubscribed_at')->chunkById(1000, function ($subscribers) use ($campaign, &$offset, &$delay_offset) {
+            $offsets = $this->dispatchToSubscriber($campaign, $subscribers, $offset, $delay_offset);
+            $offset = $offsets[0] ?? $offset;
+            $delay_offset = $offsets[1] ?? $delay_offset;
         }, 'sendportal_subscribers.id');
     }
 
@@ -89,7 +99,7 @@ class CreateMessages
      * @param Campaign $campaign
      * @param $subscribers
      */
-    protected function dispatchToSubscriber(Campaign $campaign, $subscribers, $offset)
+    protected function dispatchToSubscriber(Campaign $campaign, $subscribers, $offset, $delay_offset)
     {
         \Log::info('- Number of subscribers in this chunk: ' . count($subscribers));
 
@@ -98,11 +108,13 @@ class CreateMessages
                 continue;
             }
 
-            $this->dispatch($campaign, $subscriber, $offset);
+            $delay = rand(self::DELAY_MIN_SECONDS, self::DELAY_MAX_SECONDS);
+            $delay_offset += $delay;
+            $this->dispatch($campaign, $subscriber, $offset, $delay);
             $offset++;
         }
 
-        return $offset;
+        return [ $offset, $delay_offset ];
     }
 
     /**
@@ -146,12 +158,12 @@ class CreateMessages
      * @param Campaign $campaign
      * @param Subscriber $subscriber
      */
-    protected function dispatch(Campaign $campaign, Subscriber $subscriber, $offset): void
+    protected function dispatch(Campaign $campaign, Subscriber $subscriber, $offset, $delay): void
     {
         if ($campaign->save_as_draft) {
             $this->saveAsDraft($campaign, $subscriber);
         } else {
-            $this->dispatchNow($campaign, $subscriber, $offset);
+            $this->dispatchNow($campaign, $subscriber, $offset, $delay);
         }
     }
 
@@ -162,7 +174,7 @@ class CreateMessages
      * @param Subscriber $subscriber
      * @return Message
      */
-    protected function dispatchNow(Campaign $campaign, Subscriber $subscriber, $offset): Message
+    protected function dispatchNow(Campaign $campaign, Subscriber $subscriber, $offset, $delay): Message
     {
         // If a message already exists, then we're going to assume that
         // it has already been dispatched. This makes the dispatch fault-tolerant
@@ -193,7 +205,10 @@ class CreateMessages
         $message = new Message($attributes);
         $message->save();
 
-        SendMessage::dispatch($message)->delay($message->delayed_send_at);
+        $delayed_send = empty($message->delayed_send_at) ? $message->delayed_send_at->clone() : now();
+        $delayed_send->addSeconds($delay ?? 0);
+
+        SendMessage::dispatch($message)->delay($delayed_send);
 
         return $message;
     }

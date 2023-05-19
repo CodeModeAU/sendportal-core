@@ -12,8 +12,6 @@ use Sendportal\Base\Jobs\SendMessage;
 
 class CreateMessages
 {
-    private const DELAY_MIN_SECONDS = 180; // 3mins
-    private const DELAY_MAX_SECONDS = 300; // 5mins
 
     /**
      * Stores unique subscribers for this campaign

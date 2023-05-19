@@ -101,8 +101,8 @@ class CreateMessages
     {
         \Log::info('- Number of subscribers in this chunk: ' . count($subscribers));
 
-        $randomDelayMin = config('sendportal.message_random_delay_min');
-        $randomDelayMax = config('sendportal.message_random_delay_max');
+        $randomDelayMin = intval(config('sendportal.message_random_delay_min'));
+        $randomDelayMax = intval(config('sendportal.message_random_delay_max'));
 
         $mustAddRandomDelay = !empty($randomDelayMin) && !empty($randomDelayMax);
         $calcRandomDelay = $mustAddRandomDelay ? fn () => rand($randomDelayMin, $randomDelayMax) : fn () => 0;

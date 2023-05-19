@@ -56,11 +56,7 @@ class CampaignStoreRequest extends FormRequest
             'is_click_tracking' => [
                 'boolean',
                 'nullable'
-            ],
-            'skip_active_slots' => [
-                'boolean',
-                'nullable'
-            ],
+            ]
         ];
     }
 

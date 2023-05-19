@@ -23,6 +23,10 @@ class CampaignDispatchRequest extends FormRequest
                 'array',
                 Rule::in($tags),
             ],
+            'skip_active_slots' => [
+                'boolean',
+                'nullable'
+            ],
         ];
     }
 

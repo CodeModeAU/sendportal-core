@@ -112,9 +112,8 @@ class CreateMessages
                 continue;
             }
 
-            $delay = $calcRandomDelay();
-            $delay_offset += $delay;
-            $this->dispatch($campaign, $subscriber, $offset, $delay);
+            $delay_offset += $calcRandomDelay();
+            $this->dispatch($campaign, $subscriber, $offset, $delay_offset);
             $offset++;
         }
 

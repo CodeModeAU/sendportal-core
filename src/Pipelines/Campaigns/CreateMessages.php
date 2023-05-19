@@ -105,7 +105,7 @@ class CreateMessages
             }
 
             $delay = $this->delayResolver->calculateDelay($delay, $campaign);
-            $this->dispatch($campaign, $subscriber, $delay->clone() ?? null);
+            $this->dispatch($campaign, $subscriber, $delay?->clone());
         }
 
         return $delay;

@@ -83,7 +83,7 @@ class CreateMessages
     {
         \Log::info('- Handling Campaign Tag id='.$tag->id);
 
-        $delay = 0;
+        $delay = now();
         $tag->subscribers()->whereNull('unsubscribed_at')->chunkById(1000, function ($subscribers) use ($campaign, &$delay) {
             $delay = $this->dispatchToSubscriber($campaign, $subscribers, $delay);
         }, 'sendportal_subscribers.id');

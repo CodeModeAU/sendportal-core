@@ -67,7 +67,7 @@ class CampaignDispatchController extends Controller
             'scheduled_at' => $scheduledAt,
             'status_id' => CampaignStatus::STATUS_QUEUED,
             'save_as_draft' => $request->get('behaviour') === 'draft',
-            'skip_active_slots' => !empty($request->input('skip_active_slots'))
+            'skip_active_slots' => $request->get('skip_active_slots') === 'true'
         ]);
 
         return redirect()->route('sendportal.campaigns.status', $id);

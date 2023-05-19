@@ -49,7 +49,7 @@ class SubscribersImportController extends Controller
     public function store(SubscribersImportRequest $request): RedirectResponse
     {
         if ($request->file('file')->isValid()) {
-            $filename = Str::random(16) . '.csv';
+            $filename = Str::random(16) . '.' . ($request->file('file')->extension() ??  'csv');
 
             $path = $request->file('file')->storeAs('imports', $filename, 'local');
 

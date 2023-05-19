@@ -212,6 +212,7 @@ class CreateMessages
         $delayed_send = empty($message->delayed_send_at) ? $message->delayed_send_at->clone() : now();
         $delayed_send->addSeconds($delay ?? 0);
 
+        \Log::info('Dispatching message='. $message->id . ' with a delay=' . $delayed_send->toDateTimeString());
         SendMessage::dispatch($message)->delay($delayed_send);
 
         return $message;

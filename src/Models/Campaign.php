@@ -29,6 +29,7 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
  * @property int|null $open_count
  * @property int|null $click_count
  * @property bool $save_to_draft
+ * @property bool $skip_active_slots
  * @property bool $send_to_all
  * @property Carbon|null $scheduled_at
  * @property Carbon|null $created_at
@@ -98,6 +99,7 @@ class Campaign extends BaseModel
         'scheduled_at' => 'datetime',
         'save_as_draft' => 'bool',
         'send_to_all' => 'bool',
+        'skip_active_slots' => 'bool',
     ];
 
     /**

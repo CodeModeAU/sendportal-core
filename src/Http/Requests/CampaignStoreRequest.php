@@ -57,6 +57,10 @@ class CampaignStoreRequest extends FormRequest
                 'boolean',
                 'nullable'
             ],
+            'skip_active_slots' => [
+                'boolean',
+                'nullable'
+            ],
         ];
     }
 
